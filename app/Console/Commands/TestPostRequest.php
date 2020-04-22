@@ -38,6 +38,37 @@ class TestPostRequest extends Command
      */
     public function handle()
     {
-        
+      $url = $this->argument('url');
+
+      //Make post request tu argument of command
+      $response = Http::post($url, [
+        'name' => 'Miguel'
+      ]);
+
+      //Question 5.
+      if ($response->successful()) {
+        collect($response)->map(fn($single) => $single['name']);
+      } else {
+        $this->requestError($response->clientError());
+      }
+
+    }
+
+    //Question 4
+    public function requestError($e)
+    {
+      if ($e) {
+        //We can send an error mail for administrator to notify him
+        try {
+          //Retry request 5 times with 100miliseconds each time.
+          $response = Http::retry(5, 100)->post($url, [
+            'name' => 'Miguel'
+          ]);
+        } catch (\Exception $e) {
+          //Catch exception
+          //We can send an error mail for administrator to notify him
+          $this->info('Endpoint not responding.');
+        }
+      }
     }
 }
